@@ -1,5 +1,6 @@
 package com.lee.demo.eureka.controller;
 
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -22,13 +23,24 @@ public class ConsumerController {
 
     /**
      * 调用远程服务，传入URL和返回值的类型，返回内容
+     * 同时指定出错时的回调方法fallbackMethod
      *
      * @return
      */
+    @HystrixCommand(fallbackMethod = "addServiceFallback")
     @RequestMapping(value = "/ribbon/add", method = RequestMethod.GET)
     public String add() {
         return restTemplate.getForEntity("http://" + SERVICE_NAME + "/add?a=8&b=24", String.class)
             .getBody();
+    }
+
+    /**
+     * 出错时的回调方法
+     *
+     * @return
+     */
+    private String addServiceFallback(){
+        return "This is a self-defined error message with Hystrix by Fernando";
     }
 
 }
